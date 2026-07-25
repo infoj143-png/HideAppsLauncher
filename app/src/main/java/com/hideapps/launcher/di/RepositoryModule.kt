@@ -1,8 +1,10 @@
 package com.hideapps.launcher.di
 
 import com.hideapps.launcher.data.repository.AppsRepositoryImpl
+import com.hideapps.launcher.data.repository.HiddenAppsRepositoryImpl
 import com.hideapps.launcher.data.repository.LauncherRepositoryImpl
 import com.hideapps.launcher.domain.repository.AppsRepository
+import com.hideapps.launcher.domain.repository.HiddenAppsRepository
 import com.hideapps.launcher.domain.repository.LauncherRepository
 import dagger.Binds
 import dagger.Module
@@ -25,4 +27,10 @@ abstract class RepositoryModule {
     abstract fun bindAppsRepository(
         appsRepositoryImpl: AppsRepositoryImpl
     ): AppsRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindHiddenAppsRepository(
+        hiddenAppsRepositoryImpl: HiddenAppsRepositoryImpl
+    ): HiddenAppsRepository
 }

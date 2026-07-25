@@ -5,72 +5,62 @@ import androidx.lifecycle.viewModelScope
 import com.hideapps.launcher.domain.model.AppInfo
 import com.hideapps.launcher.domain.usecase.GetHiddenAppsUseCase
 import com.hideapps.launcher.domain.usecase.GetInstalledAppsUseCase
-import com.hideapps.launcher.domain.usecase.HideAppUseCase
-import com.hideapps.launcher.domain.usecase.IsPinSetupUseCase
+import com.hideapps.launcher.domain.usecase.UnhideAppUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class AppsState(
-    val apps: List<AppInfo> = emptyList(),
+data class HiddenAppsState(
+    val hiddenApps: List<AppInfo> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val searchQuery: String = "",
-    val hiddenAppsCount: Int = 0
+    val searchQuery: String = ""
 )
 
 @HiltViewModel
-class AppsViewModel @Inject constructor(
+class HiddenAppsViewModel @Inject constructor(
     private val getInstalledAppsUseCase: GetInstalledAppsUseCase,
     private val getHiddenAppsUseCase: GetHiddenAppsUseCase,
-    private val hideAppUseCase: HideAppUseCase,
-    private val isPinSetupUseCase: IsPinSetupUseCase
+    private val unhideAppUseCase: UnhideAppUseCase
 ) : ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     private val _error = MutableStateFlow<String?>(null)
     private val _searchQuery = MutableStateFlow("")
     private val _installedApps = MutableStateFlow<List<AppInfo>>(emptyList())
-    private val _isPinSetup = MutableStateFlow(false)
-    val isPinSetup: StateFlow<Boolean> = _isPinSetup.asStateFlow()
 
-    // Combine search query, installed apps, and hidden apps to filter in real-time
-    val state: StateFlow<AppsState> = combine(
+    val state: StateFlow<HiddenAppsState> = combine(
         _installedApps,
         getHiddenAppsUseCase(),
         _isLoading,
         _error,
         _searchQuery
     ) { apps, hiddenPkgNames, isLoading, error, query ->
-        // Hidden apps must not appear on the Home Screen
-        val visibleApps = apps.filter { !hiddenPkgNames.contains(it.packageName) }
-        val filteredApps = if (query.isBlank()) {
-            visibleApps
+        val hiddenAppsList = apps.filter { hiddenPkgNames.contains(it.packageName) }
+        val filteredHiddenApps = if (query.isBlank()) {
+            hiddenAppsList
         } else {
-            visibleApps.filter { it.label.contains(query, ignoreCase = true) }
+            hiddenAppsList.filter { it.label.contains(query, ignoreCase = true) }
         }
-        AppsState(
-            apps = filteredApps,
+        HiddenAppsState(
+            hiddenApps = filteredHiddenApps,
             isLoading = isLoading,
             error = error,
-            searchQuery = query,
-            hiddenAppsCount = hiddenPkgNames.size
+            searchQuery = query
         )
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = AppsState(isLoading = true)
+        initialValue = HiddenAppsState(isLoading = true)
     )
 
     init {
         loadApps()
-        checkPinSetup()
     }
 
     fun loadApps() {
@@ -81,16 +71,10 @@ class AppsViewModel @Inject constructor(
                 val apps = getInstalledAppsUseCase(excludeSystem = true)
                 _installedApps.value = apps
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Failed to load apps"
+                _error.value = e.localizedMessage ?: "Failed to load hidden apps"
             } finally {
                 _isLoading.value = false
             }
-        }
-    }
-
-    fun checkPinSetup() {
-        viewModelScope.launch {
-            _isPinSetup.value = isPinSetupUseCase()
         }
     }
 
@@ -98,12 +82,12 @@ class AppsViewModel @Inject constructor(
         _searchQuery.value = query
     }
 
-    fun hideApp(packageName: String) {
+    fun restoreApp(packageName: String) {
         viewModelScope.launch {
             try {
-                hideAppUseCase(packageName)
+                unhideAppUseCase(packageName)
             } catch (e: Exception) {
-                _error.value = e.localizedMessage ?: "Failed to hide app"
+                _error.value = e.localizedMessage ?: "Failed to restore app"
             }
         }
     }

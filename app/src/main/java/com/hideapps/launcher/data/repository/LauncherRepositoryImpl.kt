@@ -1,44 +1,34 @@
 package com.hideapps.launcher.data.repository
 
-import com.hideapps.launcher.data.local.AppSettingsDao
-import com.hideapps.launcher.data.local.AppSettingsEntity
+import com.hideapps.launcher.data.local.SecurePreferencesManager
 import com.hideapps.launcher.domain.model.AppSettings
 import com.hideapps.launcher.domain.repository.LauncherRepository
-import java.security.MessageDigest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class LauncherRepositoryImpl @Inject constructor(
-    private val dao: AppSettingsDao
+    private val securePreferencesManager: SecurePreferencesManager
 ) : LauncherRepository {
 
-    override suspend fun getAppSettings(): AppSettings {
-        val entity = dao.getAppSettings() ?: AppSettingsEntity()
-        return AppSettings(
-            pinHash = entity.pinHash,
-            isAppLocked = entity.isAppLocked
+    override suspend fun getAppSettings(): AppSettings = withContext(Dispatchers.IO) {
+        val pin = securePreferencesManager.getPin()
+        AppSettings(
+            pinHash = pin,
+            isAppLocked = pin != null
         )
     }
 
-    override suspend fun savePin(pin: String) {
-        val hash = hashPin(pin)
-        val entity = dao.getAppSettings()?.copy(pinHash = hash) ?: AppSettingsEntity(pinHash = hash)
-        dao.saveAppSettings(entity)
+    override suspend fun savePin(pin: String) = withContext(Dispatchers.IO) {
+        securePreferencesManager.savePin(pin)
     }
 
-    override suspend fun verifyPin(pin: String): Boolean {
-        val entity = dao.getAppSettings() ?: return false
-        val hash = hashPin(pin)
-        return entity.pinHash == hash
+    override suspend fun verifyPin(pin: String): Boolean = withContext(Dispatchers.IO) {
+        val savedPin = securePreferencesManager.getPin()
+        savedPin == pin
     }
 
-    override suspend fun clearPin() {
-        val entity = dao.getAppSettings()?.copy(pinHash = null) ?: AppSettingsEntity(pinHash = null)
-        dao.saveAppSettings(entity)
-    }
-
-    private fun hashPin(pin: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        val bytes = digest.digest(pin.toByteArray(Charsets.UTF_8))
-        return bytes.joinToString("") { "%02x".format(it) }
+    override suspend fun clearPin() = withContext(Dispatchers.IO) {
+        securePreferencesManager.clearPin()
     }
 }

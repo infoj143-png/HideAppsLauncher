@@ -1,11 +1,15 @@
 package com.hideapps.launcher.di
 
 import com.hideapps.launcher.domain.repository.AppsRepository
+import com.hideapps.launcher.domain.repository.HiddenAppsRepository
 import com.hideapps.launcher.domain.repository.LauncherRepository
 import com.hideapps.launcher.domain.usecase.ClearPinUseCase
+import com.hideapps.launcher.domain.usecase.GetHiddenAppsUseCase
 import com.hideapps.launcher.domain.usecase.GetInstalledAppsUseCase
+import com.hideapps.launcher.domain.usecase.HideAppUseCase
 import com.hideapps.launcher.domain.usecase.IsPinSetupUseCase
 import com.hideapps.launcher.domain.usecase.SavePinUseCase
+import com.hideapps.launcher.domain.usecase.UnhideAppUseCase
 import com.hideapps.launcher.domain.usecase.VerifyPinUseCase
 import dagger.Module
 import dagger.Provides
@@ -45,5 +49,23 @@ object UseCaseModule {
     @Singleton
     fun provideGetInstalledAppsUseCase(repository: AppsRepository): GetInstalledAppsUseCase {
         return GetInstalledAppsUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideHideAppUseCase(repository: HiddenAppsRepository): HideAppUseCase {
+        return HideAppUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideUnhideAppUseCase(repository: HiddenAppsRepository): UnhideAppUseCase {
+        return UnhideAppUseCase(repository)
+    }
+
+    @Provides
+    @Singleton
+    fun provideGetHiddenAppsUseCase(repository: HiddenAppsRepository): GetHiddenAppsUseCase {
+        return GetHiddenAppsUseCase(repository)
     }
 }
