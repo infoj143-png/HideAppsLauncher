@@ -7,7 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.hideapps.launcher.ui.screens.home.HomeScreen
-import com.hideapps.launcher.ui.screens.home.HomeViewModel
+import com.hideapps.launcher.ui.screens.home.AppsViewModel
 import com.hideapps.launcher.ui.screens.pin.PinScreen
 import com.hideapps.launcher.ui.screens.pin.PinViewModel
 import com.hideapps.launcher.ui.screens.settings.SettingsScreen
@@ -62,7 +62,7 @@ fun LauncherNavigation(
         }
 
         composable(Screen.Home.route) {
-            val viewModel: HomeViewModel = hiltViewModel()
+            val viewModel: AppsViewModel = hiltViewModel()
             HomeScreen(
                 viewModel = viewModel,
                 onNavigateToSettings = {
