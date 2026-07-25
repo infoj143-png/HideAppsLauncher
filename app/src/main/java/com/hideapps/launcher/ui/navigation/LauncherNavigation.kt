@@ -67,6 +67,12 @@ fun LauncherNavigation(
                 viewModel = viewModel,
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
+                },
+                onNavigateToHiddenAppsPin = {
+                    navController.navigate(Screen.HiddenAppsPin.route)
+                },
+                onNavigateToPinSetup = {
+                    navController.navigate(Screen.PinSetup.route)
                 }
             )
         }
@@ -80,6 +86,32 @@ fun LauncherNavigation(
                 },
                 onChangePin = {
                     navController.navigate(Screen.PinSetup.route)
+                }
+            )
+        }
+
+        composable(Screen.HiddenAppsPin.route) {
+            val viewModel: PinViewModel = hiltViewModel()
+            PinScreen(
+                title = "Unlock Hidden Apps",
+                viewModel = viewModel,
+                onSuccess = {
+                    navController.navigate(Screen.HiddenApps.route) {
+                        popUpTo(Screen.HiddenAppsPin.route) { inclusive = true }
+                    }
+                },
+                onBack = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.HiddenApps.route) {
+            val viewModel: com.hideapps.launcher.ui.screens.home.HiddenAppsViewModel = hiltViewModel()
+            com.hideapps.launcher.ui.screens.home.HiddenAppsScreen(
+                viewModel = viewModel,
+                onBack = {
+                    navController.popBackStack()
                 }
             )
         }

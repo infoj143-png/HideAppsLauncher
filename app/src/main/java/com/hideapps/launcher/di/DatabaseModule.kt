@@ -3,6 +3,7 @@ package com.hideapps.launcher.di
 import android.content.Context
 import androidx.room.Room
 import com.hideapps.launcher.data.local.AppSettingsDao
+import com.hideapps.launcher.data.local.HiddenAppsDao
 import com.hideapps.launcher.data.local.LauncherDatabase
 import dagger.Module
 import dagger.Provides
@@ -31,5 +32,11 @@ object DatabaseModule {
     @Singleton
     fun provideAppSettingsDao(database: LauncherDatabase): AppSettingsDao {
         return database.appSettingsDao
+    }
+
+    @Provides
+    @Singleton
+    fun provideHiddenAppsDao(database: LauncherDatabase): HiddenAppsDao {
+        return database.hiddenAppsDao
     }
 }
